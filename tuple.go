@@ -21,7 +21,7 @@ const (
 	NONE uint = 0
 
 	// FLOATPRECISION sets the error for floating point comparison
-	FLOATPRECISION float64 = 0.001
+	FLOATPRECISION float64 = 0.0000001
 )
 
 // Elem acts as an element container, holding a generic element and its type indication.
