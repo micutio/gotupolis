@@ -30,28 +30,28 @@ type Elem struct {
 	elemValue interface{}
 }
 
-// INTe instantiates an int-type tuple element.
-func INTe(intVal int32) Elem {
+// I instantiates an int-type tuple element.
+func I(intVal int32) Elem {
 	return Elem{INT, intVal}
 }
 
-// FLOATe instantiates a double precision (64bit) float64-type tuple element.
-func FLOATe(floatVal float64) Elem {
+// F instantiates a double precision (64bit) float64-type tuple element.
+func F(floatVal float64) Elem {
 	return Elem{FLOAT, floatVal}
 }
 
-// STRINGe instantiates a string-type tuple element.
-func STRINGe(stringVal string) Elem {
+// S instantiates a string-type tuple element.
+func S(stringVal string) Elem {
 	return Elem{STRING, stringVal}
 }
 
-// TUPLEe instantiates a Tuple-type tuple element.
-func TUPLEe(tupleVal Tuple) Elem {
+// T instantiates a Tuple-type tuple element.
+func T(tupleVal Tuple) Elem {
 	return Elem{TUPLE, tupleVal}
 }
 
-// ANYe instantiates a Wildcard tuple element.
-func ANYe() Elem {
+// A instantiates a Wildcard tuple element.
+func A() Elem {
 	return Elem{WILDCARD, nil}
 }
 

@@ -3,10 +3,10 @@ package gotupolis
 import "testing"
 
 func TestMakeTuple(t *testing.T) {
-	tup1 := MakeTuple(INTe(1), INTe(2), FLOATe(3.14), STRINGe("Furz!"), TUPLEe(MakeTuple(STRINGe("hurz"))))
-	tup2 := MakeTuple(INTe(1), ANYe(), FLOATe(3.14), STRINGe("Furz!"), ANYe())
-	tup3 := MakeTuple(INTe(1), ANYe(), FLOATe(3.140001), STRINGe("Furz!"), ANYe())
-	tup4 := MakeTuple(INTe(1), INTe(2), FLOATe(3.14), STRINGe("Furz!"), TUPLEe(MakeTuple(ANYe())))
+	tup1 := MakeTuple(I(1), I(2), F(3.14), S("Furz!"), T(MakeTuple(S("hurz"))))
+	tup2 := MakeTuple(I(1), A(), F(3.14), S("Furz!"), A())
+	tup3 := MakeTuple(I(1), A(), F(3.140001), S("Furz!"), A())
+	tup4 := MakeTuple(I(1), I(2), F(3.14), S("Furz!"), T(MakeTuple(A())))
 
 	if !tup1.IsMatching(tup2) {
 		t.Errorf("Error: tuples %v and %v not matching", tup1, tup2)
