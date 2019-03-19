@@ -57,7 +57,7 @@ func A() Elem {
 
 // Match two elements for equality, which is true either if they are of the same type and value
 // or one or both are wildcards.
-func (e Elem) isMatching(other Elem) bool {
+func (e Elem) isMatching(other *Elem) bool {
 	if e.elemType == 1 && other.elemType == 1 {
 		return e.elemValue.(int32) == other.elemValue.(int32)
 	}
@@ -70,7 +70,7 @@ func (e Elem) isMatching(other Elem) bool {
 		return e.elemValue.(string) == other.elemValue.(string)
 	}
 	if e.elemType == 4 && other.elemType == 4 {
-		return e.elemValue.(Tuple).IsMatching(other.elemValue.(Tuple))
+		return e.elemValue.(Tuple).IsMatching(other.elemValue.(*Tuple))
 	}
 
 	if e.elemType == 0 || other.elemType == 0 {
@@ -96,7 +96,7 @@ type Tuple struct {
 // IsMatching checks two tuples for equality, which is true if
 // - they are of the same lenght AND
 // - each element of one matches the others
-func (t Tuple) IsMatching(other Tuple) bool {
+func (t Tuple) IsMatching(other *Tuple) bool {
 	tSize := len(t.elements)
 	otherSize := len(other.elements)
 
@@ -107,7 +107,7 @@ func (t Tuple) IsMatching(other Tuple) bool {
 
 	// Check each element for equality.
 	for i := 0; i < tSize; i++ {
-		if !t.elements[i].isMatching(other.elements[i]) {
+		if !t.elements[i].isMatching(&other.elements[i]) {
 			return false
 		}
 	}
