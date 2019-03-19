@@ -70,7 +70,7 @@ func (e Elem) isMatching(other *Elem) bool {
 		return e.elemValue.(string) == other.elemValue.(string)
 	}
 	if e.elemType == 4 && other.elemType == 4 {
-		return e.elemValue.(Tuple).IsMatching(other.elemValue.(*Tuple))
+		return e.elemValue.(*Tuple).IsMatching(other.elemValue.(*Tuple))
 	}
 
 	if e.elemType == 0 || other.elemType == 0 {
@@ -96,7 +96,7 @@ type Tuple struct {
 // IsMatching checks two tuples for equality, which is true if
 // - they are of the same lenght AND
 // - each element of one matches the others
-func (t Tuple) IsMatching(other *Tuple) bool {
+func (t *Tuple) IsMatching(other *Tuple) bool {
 	tSize := len(t.elements)
 	otherSize := len(other.elements)
 
@@ -116,12 +116,12 @@ func (t Tuple) IsMatching(other *Tuple) bool {
 }
 
 // MakeTuple creates a new Tuple instance from the given parameters.
-func MakeTuple(element ...Elem) Tuple {
+func MakeTuple(element ...Elem) *Tuple {
 	var resultTuple Tuple
 	for _, e := range element {
 		fmt.Printf("element %v of type %T (reflect %v)\n", e, e, reflect.TypeOf(e))
 	}
 	resultTuple.elements = element
 	fmt.Printf("resulting tuple: %v", resultTuple)
-	return resultTuple
+	return &resultTuple
 }
