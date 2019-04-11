@@ -58,26 +58,26 @@ func A() Elem {
 // Match two elements for equality, which is true either if they are of the same type and value
 // or one or both are wildcards.
 func (e Elem) isMatching(other *Elem) bool {
-	if e.elemType == 1 && other.elemType == 1 {
+	if e.elemType == INT && other.elemType == INT {
 		return e.elemValue.(int32) == other.elemValue.(int32)
 	}
 
-	if e.elemType == 2 && other.elemType == 2 {
+	if e.elemType == FLOAT && other.elemType == FLOAT {
 		return (math.Abs(e.elemValue.(float64)-other.elemValue.(float64)) < FLOATPRECISION)
 	}
 
-	if e.elemType == 3 && other.elemType == 3 {
+	if e.elemType == STRING && other.elemType == STRING {
 		return e.elemValue.(string) == other.elemValue.(string)
 	}
-	if e.elemType == 4 && other.elemType == 4 {
+	if e.elemType == TUPLE && other.elemType == TUPLE {
 		return e.elemValue.(*Tuple).IsMatching(other.elemValue.(*Tuple))
 	}
 
-	if e.elemType == 0 || other.elemType == 0 {
+	if e.elemType == NONE || other.elemType == NONE {
 		return false
 	}
 
-	if e.elemType == 5 || other.elemType == 5 {
+	if e.elemType == WILDCARD || other.elemType == WILDCARD {
 		return true
 	}
 	return false
