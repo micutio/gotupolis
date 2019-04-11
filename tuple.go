@@ -44,6 +44,27 @@ type Elem struct {
 	elemValue interface{}
 }
 
+func (e Elem) String() string {
+	switch e.elemType {
+	case INT:
+		return fmt.Sprintf("%v", e.elemValue.(int32))
+	case FLOAT:
+		return fmt.Sprintf("%v", e.elemValue.(float64))
+	case STRING:
+		return fmt.Sprintf("\"%v\"", e.elemValue.(string))
+	case TUPLE:
+		return e.elemValue.(Tuple).String()
+	case WILDCARD:
+		return "_"
+	case NONE:
+		return "nil"
+	default:
+		return fmt.Sprintf("Error: invalid elem type %T", e.elemValue)
+	}
+}
+
+// Tuple element constructors /////////////////////////////////////////////////
+
 // I instantiates an int-type tuple element.
 func I(intVal int32) Elem {
 	return Elem{INT, intVal}
@@ -189,6 +210,21 @@ func (e Elem) order(other *Elem) int {
 // - wildcards
 type Tuple struct {
 	elements []Elem
+}
+
+func (t Tuple) String() string {
+	var strBuilder strings.Builder
+	strBuilder.WriteString("(")
+
+	size := len(t.elements)
+	for i, e := range t.elements {
+		strBuilder.WriteString(e.String())
+		if i < size-1 {
+			strBuilder.WriteString("|")
+		}
+	}
+	strBuilder.WriteString(")")
+	return strBuilder.String()
 }
 
 // MakeTuple creates a new Tuple instance from the given parameters.
