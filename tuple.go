@@ -3,7 +3,7 @@ package gotupolis
 import (
 	"fmt"
 	"math"
-	"reflect"
+	"strings"
 )
 
 const (
@@ -84,7 +84,7 @@ func (e Elem) isMatching(other *Elem) bool {
 		return e.elemValue.(string) == other.elemValue.(string)
 	}
 	if e.elemType == TUPLE && other.elemType == TUPLE {
-		return e.elemValue.(*Tuple).IsMatching(other.elemValue.(*Tuple))
+		return e.elemValue.(Tuple).IsMatching(other.elemValue.(Tuple))
 	}
 
 	if e.elemType == NONE || other.elemType == NONE {
@@ -118,7 +118,7 @@ func (e Elem) order(other *Elem) int {
 		case WILDCARD:
 			return GT
 		case TUPLE:
-			return e.elemValue.(*Tuple).order(other.elemValue.(*Tuple))
+			return e.elemValue.(Tuple).order(other.elemValue.(Tuple))
 		default:
 			return LT
 		}
@@ -192,21 +192,21 @@ type Tuple struct {
 }
 
 // MakeTuple creates a new Tuple instance from the given parameters.
-func MakeTuple(element ...Elem) *Tuple {
+func MakeTuple(element ...Elem) Tuple {
 	var resultTuple Tuple
 	// For debugging only.
-	for _, e := range element {
-		fmt.Printf("element %v of type %T (reflect %v)\n", e, e, reflect.TypeOf(e))
-	}
+	// for _, e := range element {
+	// 	fmt.Printf("element %v of type %T (reflect %v)\n", e, e, reflect.TypeOf(e))
+	// }
 	resultTuple.elements = element
-	fmt.Printf("resulting tuple: %v", resultTuple)
-	return &resultTuple
+	// fmt.Printf("resulting tuple: %v", resultTuple)
+	return resultTuple
 }
 
 // IsMatching checks two tuples for equality, which is true if
 // - they are of the same lenght AND
 // - each element of one matches the others
-func (t *Tuple) IsMatching(other *Tuple) bool {
+func (t Tuple) IsMatching(other Tuple) bool {
 	tSize := len(t.elements)
 	otherSize := len(other.elements)
 
@@ -226,7 +226,7 @@ func (t *Tuple) IsMatching(other *Tuple) bool {
 }
 
 // Comparator function, used for determining ordering of two tuples.
-func (t *Tuple) order(other *Tuple) int {
+func (t Tuple) order(other Tuple) int {
 	tSize := len(t.elements)
 	otherSize := len(other.elements)
 
