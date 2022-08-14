@@ -123,7 +123,9 @@ func (e Elem) isMatching(other *Elem) bool {
 // wildcard < tuple < string < double < int < nil
 // The order between elements of the same type is the builtin in golang
 // Note to self: discussion about value receiver vs pointer receiver:
-// 		https://stackoverflow.com/questions/27775376/value-receiver-vs-pointer-receiver-in-golang
+//
+//	https://stackoverflow.com/questions/27775376/value-receiver-vs-pointer-receiver-in-golang
+//
 // Returns 1 if this e > other, -1 if e < other, 0 if both are equal
 func (e Elem) order(other *Elem) int {
 	switch e.elemType {

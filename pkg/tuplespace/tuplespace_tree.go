@@ -5,11 +5,13 @@ import (
 )
 
 // TupleSpaceTree is a binary-tree-based implementation of a tuple space.
-// This implementation uses a binary tree as underlying data structure, which helps
-// with search performance, but is still quite naïve because if a lack of automated balancing.
+// This implementation uses a binary tree as underlying data structure, which helps with search
+// performance, but is still quite naïve because if a lack of automated balancing.
 // This implementation is not meant for use in production but merely as a proof of concept.
 // Shoutout to
-//			https://flaviocopes.com/golang-data-structure-binary-search-tree/
+//
+//	https://flaviocopes.com/golang-data-structure-binary-search-tree/
+//
 // for some inspiration.
 type TupleSpaceTree struct {
 	root *tstNode

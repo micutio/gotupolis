@@ -1,6 +1,7 @@
 package gotupolis
 
-// The TupleSpace defines an interface that any concrete implementation of a tuple space has to follow.
+// The TupleSpace defines an interface that any concrete implementation of a tuple space has to
+// follow.
 type TupleSpace interface {
 
 	// Read a tuple that matches the argument and remove it from the space.
