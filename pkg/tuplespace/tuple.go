@@ -15,8 +15,8 @@ const (
 	STRING uint = 3
 	// TUPLE indicates a nested tuple.
 	TUPLE uint = 4
-	// WILDCARD indicates any possible type of the above.
-	WILDCARD uint = 5
+	// ANY indicates any possible type of the above, functioning as a wildcard.
+	ANY uint = 5
 	// NONE indicates an invalid type
 	NONE uint = 0
 
@@ -54,7 +54,7 @@ func (e Elem) String() string {
 		return fmt.Sprintf("\"%v\"", e.elemValue.(string))
 	case TUPLE:
 		return e.elemValue.(Tuple).String()
-	case WILDCARD:
+	case ANY:
 		return "_"
 	case NONE:
 		return "nil"
@@ -86,13 +86,13 @@ func T(tupleVal Tuple) Elem {
 }
 
 // A instantiates a Wildcard tuple element.
-func A() Elem {
-	return Elem{WILDCARD, nil}
+func Any() Elem {
+	return Elem{ANY, nil}
 }
 
 // Match two elements for equality, which is true either if they are of the same type and value
 // or one or both are wildcards.
-func (e Elem) isMatching(other *Elem) bool {
+func (e Elem) isMatching(other Elem) bool {
 	if e.elemType == INT && other.elemType == INT {
 		return e.elemValue.(int32) == other.elemValue.(int32)
 	}
@@ -112,7 +112,7 @@ func (e Elem) isMatching(other *Elem) bool {
 		return false
 	}
 
-	if e.elemType == WILDCARD || other.elemType == WILDCARD {
+	if e.elemType == ANY || other.elemType == ANY {
 		return true
 	}
 	return false
@@ -120,25 +120,25 @@ func (e Elem) isMatching(other *Elem) bool {
 
 // Comparator function, used for determining ordering of two elements.
 // The order between elements of different type is arbitrary, but consistent.
-// wildcard < tuple < string < double < int < nil
+// ANY < tuple < string < double < int < nil
 // The order between elements of the same type is the builtin in golang
 // Note to self: discussion about value receiver vs pointer receiver:
 //
 //	https://stackoverflow.com/questions/27775376/value-receiver-vs-pointer-receiver-in-golang
 //
 // Returns 1 if this e > other, -1 if e < other, 0 if both are equal
-func (e Elem) order(other *Elem) int {
+func (e Elem) order(other Elem) int {
 	switch e.elemType {
 
-	case WILDCARD:
-		if other.elemType == WILDCARD {
+	case ANY:
+		if other.elemType == ANY {
 			return EQ
 		}
 		return LT
 
 	case TUPLE:
 		switch other.elemType {
-		case WILDCARD:
+		case ANY:
 			return GT
 		case TUPLE:
 			return e.elemValue.(Tuple).order(other.elemValue.(Tuple))
@@ -148,7 +148,7 @@ func (e Elem) order(other *Elem) int {
 
 	case STRING:
 		switch other.elemType {
-		case WILDCARD:
+		case ANY:
 		case TUPLE:
 			return GT
 		case STRING:
@@ -167,7 +167,7 @@ func (e Elem) order(other *Elem) int {
 
 	case FLOAT:
 		switch other.elemType {
-		case WILDCARD:
+		case ANY:
 		case TUPLE:
 		case STRING:
 			return GT
@@ -255,7 +255,7 @@ func (t Tuple) IsMatching(other Tuple) bool {
 
 	// Check each element for equality.
 	for i := 0; i < tSize; i++ {
-		if !t.elements[i].isMatching(&other.elements[i]) {
+		if !t.elements[i].isMatching(other.elements[i]) {
 			return false
 		}
 	}
@@ -272,7 +272,7 @@ func (t Tuple) order(other Tuple) int {
 
 	// Check each element for equality.
 	for i := 0; i < shorterSize; i++ {
-		if ord := t.elements[i].order(&other.elements[i]); ord != EQ {
+		if ord := t.elements[i].order(other.elements[i]); ord != EQ {
 			return ord
 		}
 	}
