@@ -36,6 +36,11 @@ The tuple space is being implemented iteratively, where each iteration improves 
 - [ ] distributed tuple space on multiple servers, accessible via network
 - [ ] 'space of spaces', tuples can be tuple spaces themselves
 
+### Inspiration from other golang tuplespace libraries
+
+https://github.com/sgjp/go-tuplespace
+https://github.com/alecthomas/tuplespace
+
 ## Current version
 
 indev

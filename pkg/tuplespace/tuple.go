@@ -287,3 +287,9 @@ func (t Tuple) order(other Tuple) int {
 
 	return GT
 }
+
+// Comparator function for ordering tuples, used for tidwall/btree.
+// Returns `true` if t1 is considered _less than_ t2, `false` otherwise.
+func TupleOrder(t1, t2 Tuple) bool {
+	return t1.order(t2) == LT
+}
