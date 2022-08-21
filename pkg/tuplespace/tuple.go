@@ -59,7 +59,7 @@ func (e Elem) String() string {
 	case NONE:
 		return "nil"
 	default:
-		return fmt.Sprintf("Error: invalid elem type %T", e.elemValue)
+		panic(fmt.Sprintf("Error: invalid elem type %T", e.elemValue))
 	}
 }
 
@@ -88,6 +88,26 @@ func T(tupleVal Tuple) Elem {
 // A instantiates a Wildcard tuple element.
 func Any() Elem {
 	return Elem{ANY, nil}
+}
+
+// Returns true if the element is defined, false if it is a wildcard or none
+func (e Elem) IsDefined() bool {
+	switch e.elemType {
+	case INT:
+		return true
+	case FLOAT:
+		return true
+	case STRING:
+		return true
+	case TUPLE:
+		return e.elemValue.(Tuple).IsDefined()
+	case ANY:
+		return false
+	case NONE:
+		return false
+	default:
+		panic(fmt.Sprintf("Error: invalid elem type %T", e.elemValue))
+	}
 }
 
 // Match two elements for equality, which is true either if they are of the same type and value
@@ -239,6 +259,17 @@ func MakeTuple(element ...Elem) Tuple {
 	resultTuple.elements = element
 	// fmt.Printf("resulting tuple: %v", resultTuple)
 	return resultTuple
+}
+
+// Returns true if the tuple does not contain any wildcards or none fields
+func (t Tuple) IsDefined() bool {
+	for _, v := range t.elements {
+		if !v.IsDefined() {
+			// break out of the loop if any element is undefined
+			return false
+		}
+	}
+	return true
 }
 
 // IsMatching checks two tuples for equality, which is true if
