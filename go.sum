@@ -2,3 +2,5 @@ github.com/micutio/goptional v0.0.0-20220819142109-68da6ecd08c6 h1:44g/6zxiIkCMx
 github.com/micutio/goptional v0.0.0-20220819142109-68da6ecd08c6/go.mod h1:NVRk8/MaoB4b4Tu+YADH6PvkMWrBAk1CMw5QnRYepEc=
 github.com/tidwall/btree v1.4.1 h1:m0XE8xxIrI7LiNOypNWm260JyfX4hi8Yfm8ESFfpi+k=
 github.com/tidwall/btree v1.4.1/go.mod h1:LGm8L/DZjPLmeWGjv5kFrY8dL4uVhMmzmmLYmsObdKE=
+github.com/tidwall/btree v1.4.2 h1:PpkaieETJMUxYNADsjgtNRcERX7mGc/GP2zp/r5FM3g=
+github.com/tidwall/btree v1.4.2/go.mod h1:LGm8L/DZjPLmeWGjv5kFrY8dL4uVhMmzmmLYmsObdKE=

@@ -24,6 +24,6 @@ type SimpleStore struct {
 	tree *btree.BTreeG[Tuple]
 }
 
-func New() *SimpleStore {
+func NewSimpleStore() *SimpleStore {
 	return &SimpleStore{tree: btree.NewBTreeG(TupleOrder)}
 }
