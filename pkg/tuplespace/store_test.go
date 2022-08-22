@@ -25,11 +25,11 @@ func TestStore(t *testing.T) {
 	}
 
 	// test out
-	// since we've only read the tuple, it should still be in the store
-	var tupleOpt2a option.Maybe[Tuple] = store.In(tup)
-	if !tupleOpt2a.IsPresent() {
-		t.Errorf("Error: cannot find inserted tuple %v", tup)
-	}
+	// // since we've only read the tuple, it should still be in the store
+	// var tupleOpt2a option.Maybe[Tuple] = store.In(tup)
+	// if !tupleOpt2a.IsPresent() {
+	// 	t.Errorf("Error: cannot find inserted tuple %v", tup)
+	// }
 
 	var tupleOpt2b option.Maybe[Tuple] = store.In(query)
 	if !tupleOpt2b.IsPresent() {
@@ -37,7 +37,7 @@ func TestStore(t *testing.T) {
 	}
 
 	// now the tuple should be gone
-	var tupleOpt3 option.Maybe[Tuple] = store.In(tup)
+	var tupleOpt3 option.Maybe[Tuple] = store.In(query)
 	if tupleOpt3.IsPresent() {
 		t.Errorf("Error: store should not contain tuple %v anymore", tup)
 	}

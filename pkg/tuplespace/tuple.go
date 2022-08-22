@@ -151,15 +151,12 @@ func (e Elem) order(other Elem) int {
 	switch e.elemType {
 
 	case ANY:
-		if other.elemType == ANY {
-			return EQ
-		}
-		return LT
+		return EQ
 
 	case TUPLE:
 		switch other.elemType {
 		case ANY:
-			return GT
+			return EQ
 		case TUPLE:
 			return e.elemValue.(Tuple).order(other.elemValue.(Tuple))
 		default:
@@ -169,6 +166,7 @@ func (e Elem) order(other Elem) int {
 	case STRING:
 		switch other.elemType {
 		case ANY:
+			return EQ
 		case TUPLE:
 			return GT
 		case STRING:
@@ -188,6 +186,7 @@ func (e Elem) order(other Elem) int {
 	case FLOAT:
 		switch other.elemType {
 		case ANY:
+			return EQ
 		case TUPLE:
 		case STRING:
 			return GT
@@ -205,6 +204,9 @@ func (e Elem) order(other Elem) int {
 		}
 
 	case INT:
+		if other.elemType == ANY {
+			return EQ
+		}
 		if other.elemType == INT {
 			if e.elemValue.(int32) < other.elemValue.(int32) {
 				return LT

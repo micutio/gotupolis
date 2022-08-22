@@ -54,23 +54,23 @@ func TestElemOrdering(t *testing.T) {
 	tup6 := MakeTuple(I(1), I(2), F(3.14), S("Foo!"), T(MakeTuple(S("Bar!"))))
 
 	if ord := tup1.order(tup2); ord != EQ {
-		t.Errorf("Error: order of tuples %v and %v should be LT, not %v", tup1, tup2, ord)
+		t.Errorf("Error: order of tuples %v and %v should be EQ, not %v", tup1, tup2, ord)
 	}
 
-	if ord := tup1.order(tup4); ord != LT {
+	if ord := tup1.order(tup4); ord != EQ {
 		t.Errorf("Error: order of tuples %v and %v should be EQ, not %v", tup1, tup4, ord)
 	}
 
 	if ord := tup4.order(tup5); ord != LT {
-		t.Errorf("Error: order of tuples %v and %v should be GT, not %v", tup4, tup5, ord)
+		t.Errorf("Error: order of tuples %v and %v should be LT, not %v", tup4, tup5, ord)
 	}
 
 	if ord := tup5.order(tup6); ord != LT {
 		t.Errorf("Error: order of tuples %v and %v should be LT, not %v", tup5, tup6, ord)
 	}
 
-	if ord := tup4.order(tup6); ord != LT {
-		t.Errorf("Error: order of tuples %v and %v should be LT, not %v", tup4, tup6, ord)
+	if ord := tup4.order(tup6); ord != EQ {
+		t.Errorf("Error: order of tuples %v and %v should be EQ, not %v", tup4, tup6, ord)
 	}
 }
 
