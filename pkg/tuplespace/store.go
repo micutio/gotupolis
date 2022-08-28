@@ -8,8 +8,9 @@ import (
 	option "github.com/micutio/goptional"
 )
 
-// The Store defines an interface that any concrete implementation of a tuple space has to
-// follow.
+// The Store defines an interface that any concrete implementation of a tuple space has to follow.
+// The tuplespace assumes the store implementation to be thread-safe in order to allow concurrent
+// access.
 type Store interface {
 
 	// Read a tuple that matches the argument and remove it from the space.
@@ -19,18 +20,21 @@ type Store interface {
 	Read(query Tuple) option.Maybe[Tuple]
 
 	// Write a tuple into the tuple space.
-	Out(tuple Tuple)
+	Out(tuple Tuple) bool
 }
 
-type SimpleStore struct {
+// The BTreeStore is a simple in-memory implementation of a store.
+type BTreeStore struct {
 	tree *btree.BTreeG[Tuple]
 }
 
-func NewSimpleStore() *SimpleStore {
-	return &SimpleStore{tree: btree.NewBTreeG(TupleOrder)}
+// NewSimpleStore creates an empty store instance which is ready for use.
+func NewSimpleStore() *BTreeStore {
+	return &BTreeStore{tree: btree.NewBTreeG(TupleOrder)}
 }
 
-func (store *SimpleStore) In(query Tuple) option.Maybe[Tuple] {
+// In implements the `In` function of the `Store` interface.
+func (store *BTreeStore) In(query Tuple) option.Maybe[Tuple] {
 	tuple, found := store.tree.Get(query)
 	if found {
 		if tuple.IsMatching(query) {
@@ -43,7 +47,8 @@ func (store *SimpleStore) In(query Tuple) option.Maybe[Tuple] {
 	return option.NewNothing[Tuple]()
 }
 
-func (store *SimpleStore) Read(query Tuple) option.Maybe[Tuple] {
+// Read implements the `Read` function of the `Store` interface.
+func (store *BTreeStore) Read(query Tuple) option.Maybe[Tuple] {
 	tuple, found := store.tree.Get(query)
 	if found {
 		if tuple.IsMatching(query) {
@@ -55,10 +60,14 @@ func (store *SimpleStore) Read(query Tuple) option.Maybe[Tuple] {
 	return option.NewNothing[Tuple]()
 }
 
-func (store *SimpleStore) Out(tuple Tuple) {
+// Out implements the `Out` function of the `Store` interface
+// Returns `true` if the tuple was inserted, false otherwise
+func (store *BTreeStore) Out(tuple Tuple) bool {
 	if !tuple.IsDefined() {
 		fmt.Printf("[Out] Warning: attempt to store undefined tuple %v \n", tuple)
+		return false
 	} else {
 		store.tree.Set(tuple)
+		return true
 	}
 }

@@ -2,8 +2,6 @@ package gotupolis
 
 import (
 	"testing"
-
-	option "github.com/micutio/goptional"
 )
 
 func TestStore(t *testing.T) {
@@ -12,21 +10,30 @@ func TestStore(t *testing.T) {
 	query := MakeTuple(I(1), Any(), F(3.14), S("Foo!"), T(MakeTuple(S("hurz"))))
 
 	// insert for testing defined queries
-	store.Out(tup)
+	isTupInserted := store.Out(tup)
+	if !isTupInserted {
+		t.Errorf("Error: tuple %v was not inserted, but it should have been", tup)
+	}
 
-	var tupleOpt1a option.Maybe[Tuple] = store.Read(tup)
+	isQueryInserted := store.Out(query)
+	if isQueryInserted {
+		t.Errorf("Error: query %v was inserted, but should not have been, since it contains "+
+			"wildcards", query)
+	}
+
+	tupleOpt1a := store.Read(tup)
 	if !tupleOpt1a.IsPresent() {
 		t.Errorf("Error: cannot find tuple %v", tup)
 	}
 
 	// since we've only read the tuple, it should still be in the store
-	var tupleOpt1b option.Maybe[Tuple] = store.In(tup)
+	tupleOpt1b := store.In(tup)
 	if !tupleOpt1b.IsPresent() {
 		t.Errorf("Error: cannot find tuple %v", tup)
 	}
 
 	// now the tuple should be gone
-	var tupleOpt1c option.Maybe[Tuple] = store.In(tup)
+	tupleOpt1c := store.In(tup)
 	if tupleOpt1c.IsPresent() {
 		t.Errorf("Error: store should not contain tuple %v anymore", tup)
 	}
@@ -34,19 +41,19 @@ func TestStore(t *testing.T) {
 	// insert for testing with not defined queries
 	store.Out(tup)
 
-	var tupleOpt2a option.Maybe[Tuple] = store.Read(query)
+	tupleOpt2a := store.Read(query)
 	if !tupleOpt2a.IsPresent() {
 		t.Errorf("Error: cannot find tuple %v", query)
 	}
 
 	// since we've only read the tuple, it should still be in the store
-	var tupleOpt2b option.Maybe[Tuple] = store.In(query)
+	tupleOpt2b := store.In(query)
 	if !tupleOpt2b.IsPresent() {
 		t.Errorf("Error: cannot find tuple %v", query)
 	}
 
 	// now the tuple should be gone
-	var tupleOpt2c option.Maybe[Tuple] = store.In(query)
+	tupleOpt2c := store.In(query)
 	if tupleOpt2c.IsPresent() {
 		t.Errorf("Error: store should not contain tuple %v anymore", tup)
 	}
