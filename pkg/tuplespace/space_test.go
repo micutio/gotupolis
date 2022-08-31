@@ -39,7 +39,10 @@ func TestSpace(t *testing.T) {
 	}
 
 	// insert for testing with not defined queries
-	space.Out(tup)
+	isTupInserted = <-space.Out(tup)
+	if !isTupInserted {
+		t.Errorf("Error: tuple %v was not inserted, but it should have been", tup)
+	}
 
 	tupleOpt2a := <-space.Read(query)
 	if !tupleOpt2a.IsPresent() {
