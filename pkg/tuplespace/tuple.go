@@ -7,22 +7,28 @@ import (
 )
 
 const (
-	// INT indicates 32bit-integers.
-	INT uint = 1
-	// FLOAT indicates double precision (64bit) floating point numbers.
-	FLOAT uint = 2
-	// STRING indicates... well... strings.
-	STRING uint = 3
-	// TUPLE indicates a nested tuple.
-	TUPLE uint = 4
-	// ANY indicates any possible type of the above, functioning as a wildcard.
-	ANY uint = 5
-	// NONE indicates an invalid type
-	NONE uint = 0
-
 	// FLOATPRECISION sets the error for floating point comparison
 	FLOATPRECISION float64 = 0.0000001
+)
 
+type TupleElement uint
+
+const (
+	// INT indicates 32bit-integers.
+	INT TupleElement = 1
+	// FLOAT indicates double precision (64bit) floating point numbers.
+	FLOAT = 2
+	// STRING indicates... well... strings.
+	STRING = 3
+	// TUPLE indicates a nested tuple.
+	TUPLE = 4
+	// ANY indicates any possible type of the above, functioning as a wildcard.
+	ANY = 5
+	// NONE indicates an invalid type
+	NONE = 0
+)
+
+const (
 	// LT is the `less than` return value for order comparisons
 	LT int = -1
 	// EQ is the `equals` return value for order comparisons
@@ -40,8 +46,16 @@ func min(x, y int) int {
 
 // Elem acts as an element container, holding a generic element and its type indication.
 type Elem struct {
-	elemType  uint
+	elemType  TupleElement
 	elemValue interface{}
+}
+
+func (e Elem) GetType() TupleElement {
+	return e.elemType
+}
+
+func (e Elem) GetValue() interface{} {
+	return e.elemValue
 }
 
 func (e Elem) String() string {
@@ -66,7 +80,7 @@ func (e Elem) String() string {
 // Tuple element constructors /////////////////////////////////////////////////
 
 // I instantiates an int-type tuple element.
-func I(intVal int32) Elem {
+func I(intVal int) Elem {
 	return Elem{INT, intVal}
 }
 
@@ -88,6 +102,10 @@ func T(tupleVal Tuple) Elem {
 // A instantiates a Wildcard tuple element.
 func Any() Elem {
 	return Elem{ANY, nil}
+}
+
+func None() Elem {
+	return Elem{NONE, nil}
 }
 
 // Returns true if the element is defined, false if it is a wildcard or none

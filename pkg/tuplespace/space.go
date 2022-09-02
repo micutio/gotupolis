@@ -1,7 +1,7 @@
 package gotupolis
 
 import (
-	option "github.com/micutio/goptional"
+	opt "github.com/micutio/goptional"
 )
 
 // TODO: Refer to https://github.com/sgjp/go-tuplespace for inspiration
@@ -24,8 +24,8 @@ func MakeSpace(store Store) *Space {
 // Retrieve a tuple that matches the query from the space and remove it.
 // The tuple may contain wildcards. If it does and matches multiple tuples in the space, then an
 // arbitrary match will be returned as a result.
-func (s *Space) In(query Tuple) <-chan option.Maybe[Tuple] {
-	c := make(chan option.Maybe[Tuple])
+func (s *Space) In(query Tuple) <-chan opt.Maybe[Tuple] {
+	c := make(chan opt.Maybe[Tuple])
 	go func() {
 		c <- s.store.In(query)
 	}()
@@ -35,8 +35,8 @@ func (s *Space) In(query Tuple) <-chan option.Maybe[Tuple] {
 // Retrieve a tuple that matches the query from the space but do not remove it.
 // The tuple may contain wildcards. If it does and matches multiple tuples in the space, then an
 // arbitrary match will be returned as a result.
-func (s *Space) Read(query Tuple) <-chan option.Maybe[Tuple] {
-	c := make(chan option.Maybe[Tuple])
+func (s *Space) Read(query Tuple) <-chan opt.Maybe[Tuple] {
+	c := make(chan opt.Maybe[Tuple])
 	go func() {
 		c <- s.store.Read(query)
 	}()
