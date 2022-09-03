@@ -61,7 +61,7 @@ func (e Elem) GetValue() interface{} {
 func (e Elem) String() string {
 	switch e.elemType {
 	case INT:
-		return fmt.Sprintf("%v", e.elemValue.(int32))
+		return fmt.Sprintf("%v", e.elemValue.(int))
 	case FLOAT:
 		return fmt.Sprintf("%v", e.elemValue.(float64))
 	case STRING:
@@ -132,7 +132,7 @@ func (e Elem) IsDefined() bool {
 // or one or both are wildcards.
 func (e Elem) isMatching(other Elem) bool {
 	if e.elemType == INT && other.elemType == INT {
-		return e.elemValue.(int32) == other.elemValue.(int32)
+		return e.elemValue.(int) == other.elemValue.(int)
 	}
 
 	if e.elemType == FLOAT && other.elemType == FLOAT {
@@ -226,10 +226,10 @@ func (e Elem) order(other Elem) int {
 			return EQ
 		}
 		if other.elemType == INT {
-			if e.elemValue.(int32) < other.elemValue.(int32) {
+			if e.elemValue.(int) < other.elemValue.(int) {
 				return LT
 			}
-			if e.elemValue.(int32) == other.elemValue.(int32) {
+			if e.elemValue.(int) == other.elemValue.(int) {
 				return EQ
 			}
 			return GT
