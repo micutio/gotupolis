@@ -77,19 +77,23 @@ func (l Lexer) nextTuple() (opt.Maybe[ts.Tuple], error) {
 }
 
 func (l Lexer) matchToken() (token, error) {
-	switch r := l.buf[l.pos]; {
-	case unicode.IsDigit(r) || r == '-':
+	r := l.buf[l.pos]
+	switch r {
+	case '-':
 		return l.parseNumber()
-	case r == '"':
+	case '"':
 		return l.parseString()
-	case r == '_':
+	case '_':
 		return l.parseWildcard(), nil
-	case r == '(':
+	case '(':
 		return l.parseTuple()
-	case r == ',':
+	case ',':
 		l.pos += 1
 		return token{T_NONE, nil}, nil
 	default:
+		if unicode.IsDigit(r) {
+			return l.parseNumber()
+		}
 		err := errors.New(fmt.Sprintf("invalid symbol '%v'", r))
 		l.pos += 1
 		return token{T_NONE, nil}, err
@@ -121,11 +125,12 @@ func (l Lexer) elemFromToken(tkn token) ts.Elem {
 func (l Lexer) parseNumber() (token, error) {
 	start := l.pos
 	isFloat := false
+
+Loop:
 	for l.pos < len(l.buf) {
-		switch r := l.buf[l.pos]; {
-		case unicode.IsDigit(r):
-			l.pos += 1
-		case r == '.':
+		r := l.buf[l.pos]
+		switch r {
+		case '.':
 			if isFloat {
 				return token{}, errors.New("float number with double decimal points")
 			} else {
@@ -133,7 +138,11 @@ func (l Lexer) parseNumber() (token, error) {
 				l.pos += 1
 			}
 		default:
-			break
+			if unicode.IsDigit(r) {
+				l.pos += 1
+			} else {
+				break Loop
+			}
 		}
 	}
 
@@ -151,7 +160,7 @@ func (l Lexer) parseNumber() (token, error) {
 		typ = T_INT
 		i, err := strconv.Atoi(strVal)
 		if err != nil {
-			panic(err)
+			return token{}, err
 		} else {
 			return token{typ, i}, nil
 		}
