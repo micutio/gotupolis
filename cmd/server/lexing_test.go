@@ -23,7 +23,8 @@ func TestLexer(t *testing.T) {
 }
 
 func checkOutput(t *testing.T, input string, expected []ts.Tuple) {
-	output, err := NewLexer(input).IntoTuples()
+	lexer := NewLexer(input)
+	output, err := lexer.IntoTuples()
 	if err != nil {
 		fmt.Println(err)
 	}
@@ -33,7 +34,7 @@ func checkOutput(t *testing.T, input string, expected []ts.Tuple) {
 	} else {
 		isDifferent := false
 		for i := range output {
-			if output[i].IsMatching(expected[i]) {
+			if !output[i].IsMatching(expected[i]) {
 				isDifferent = true
 				break
 			}

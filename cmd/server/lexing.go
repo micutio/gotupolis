@@ -41,7 +41,7 @@ func NewLexer(buffer string) Lexer {
 	}
 }
 
-func (l Lexer) IntoTuples() ([]ts.Tuple, error) {
+func (l *Lexer) IntoTuples() ([]ts.Tuple, error) {
 	tuples := []ts.Tuple{}
 
 	for t, err := l.nextTuple(); ; t, err = l.nextTuple() {
@@ -56,7 +56,7 @@ func (l Lexer) IntoTuples() ([]ts.Tuple, error) {
 // nextTuple returns the next tuple contained in the string.
 // If the string is empty or the Lexer has reached the end or no tuple can be read for some reason,
 // then an empty option will be returned.
-func (l Lexer) nextTuple() (opt.Maybe[ts.Tuple], error) {
+func (l *Lexer) nextTuple() (opt.Maybe[ts.Tuple], error) {
 	if l.pos >= len(l.buf) {
 		return opt.NewNothing[ts.Tuple](), nil
 	}
@@ -76,7 +76,7 @@ func (l Lexer) nextTuple() (opt.Maybe[ts.Tuple], error) {
 	}
 }
 
-func (l Lexer) matchToken() (token, error) {
+func (l *Lexer) matchToken() (token, error) {
 	r := l.buf[l.pos]
 	switch r {
 	case '-':
@@ -100,7 +100,7 @@ func (l Lexer) matchToken() (token, error) {
 	}
 }
 
-func (l Lexer) elemFromToken(tkn token) ts.Elem {
+func (l *Lexer) elemFromToken(tkn token) ts.Elem {
 	switch tkn.typ {
 	case T_INT:
 		return ts.I(tkn.val.(int))
@@ -122,7 +122,7 @@ func (l Lexer) elemFromToken(tkn token) ts.Elem {
 	}
 }
 
-func (l Lexer) parseNumber() (token, error) {
+func (l *Lexer) parseNumber() (token, error) {
 	start := l.pos
 	isFloat := false
 
@@ -167,7 +167,7 @@ Loop:
 	}
 }
 
-func (l Lexer) parseString() (token, error) {
+func (l *Lexer) parseString() (token, error) {
 	l.pos += 1
 	start := l.pos
 	for l.buf[l.pos] != '"' {
@@ -183,13 +183,13 @@ func (l Lexer) parseString() (token, error) {
 	return token{T_STRING, string(l.buf[start:l.pos])}, nil
 }
 
-func (l Lexer) parseWildcard() token {
+func (l *Lexer) parseWildcard() token {
 	start := l.pos
 	l.pos += 1
 	return token{T_WILDCARD, string(l.buf[start:l.pos])}
 }
 
-func (l Lexer) parseTuple() (token, error) {
+func (l *Lexer) parseTuple() (token, error) {
 	l.pos += 1
 	tupleItems := []token{}
 	for l.buf[l.pos] != ')' {
