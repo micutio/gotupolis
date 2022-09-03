@@ -1,6 +1,7 @@
 package gotupolis
 
 import (
+	"errors"
 	"fmt"
 	"strconv"
 	"unicode"
@@ -18,11 +19,12 @@ const (
 	T_STRING             = 3
 	T_TUPLE              = 4
 	T_WILDCARD           = 5
+	T_NONE               = 6
 )
 
 type token struct {
 	typ tokenType
-	val string
+	val interface{}
 }
 
 type Lexer struct {
@@ -39,71 +41,84 @@ func NewLexer(buffer string) Lexer {
 	}
 }
 
-// nextTuple returns the next tuple contained in the string.
-// If the string is empty or the Lexer has reached the end or no tuple can be read for some reason,
-// then an empty option will be returned.
-func (l *Lexer) nextTuple() opt.Maybe[ts.Tuple] {
-	if l.pos >= len(l.buf) {
-		return opt.NewNothing[ts.Tuple]()
-	}
+func (l Lexer) IntoTuples() ([]ts.Tuple, error) {
+	tuples := []ts.Tuple{}
 
-	tkn := l.matchToken()
-	elem := l.elemFromToken(tkn)
-	if elem.GetType() == ts.TUPLE {
-		tupleVal := elem.GetValue().(ts.Tuple)
-		return opt.NewJust(ts.Tuple(tupleVal))
-	} else {
-		return opt.NewJust(ts.MakeTuple())
+	for t, err := l.nextTuple(); ; t, err = l.nextTuple() {
+		if t.IsPresent() {
+			tuples = append(tuples, t.Get())
+		} else {
+			return tuples, err
+		}
 	}
 }
 
-func (l *Lexer) matchToken() opt.Maybe[token] {
+// nextTuple returns the next tuple contained in the string.
+// If the string is empty or the Lexer has reached the end or no tuple can be read for some reason,
+// then an empty option will be returned.
+func (l Lexer) nextTuple() (opt.Maybe[ts.Tuple], error) {
+	if l.pos >= len(l.buf) {
+		return opt.NewNothing[ts.Tuple](), nil
+	}
+
+	tkn, err := l.matchToken()
+	if err != nil {
+		errWithContext := errors.New(fmt.Sprintf("malformed tuple: {%s}", err))
+		return opt.NewNothing[ts.Tuple](), errWithContext
+	}
+
+	elem := l.elemFromToken(tkn)
+	if elem.GetType() == ts.TUPLE {
+		tupleVal := elem.GetValue().(ts.Tuple)
+		return opt.NewJust(ts.Tuple(tupleVal)), nil
+	} else {
+		return opt.NewJust(ts.MakeTuple()), nil
+	}
+}
+
+func (l Lexer) matchToken() (token, error) {
 	switch r := l.buf[l.pos]; {
 	case unicode.IsDigit(r) || r == '-':
 		return l.parseNumber()
 	case r == '"':
 		return l.parseString()
 	case r == '_':
-		return l.parseWildcard()
+		return l.parseWildcard(), nil
 	case r == '(':
 		return l.parseTuple()
 	case r == ',':
 		l.pos += 1
-		return opt.NewNothing[token]()
+		return token{T_NONE, nil}, nil
 	default:
-		fmt.Printf("invalid symbol '%v'", r)
+		err := errors.New(fmt.Sprintf("invalid symbol '%v'", r))
 		l.pos += 1
-		return opt.NewNothing[token]()
+		return token{T_NONE, nil}, err
 	}
 }
 
-func (l *Lexer) elemFromToken(t opt.Maybe[token]) ts.Elem {
-	if t.IsPresent() {
-		switch t.Get().typ {
-		case T_INT:
-			i, err := strconv.Atoi(t.Get().val)
-			if err != nil {
-				panic(err)
-			} else {
-				return ts.I(i)
-			}
-		case T_FLOAT:
-			f, err := strconv.ParseFloat(t.Get().val, 8)
-			if err != nil {
-				panic(err)
-			} else {
-				return ts.F(f)
-			}
-		case T_STRING:
-			return ts.S(t.Get().val)
-		case T_WILDCARD:
-			return ts.Any()
+func (l Lexer) elemFromToken(tkn token) ts.Elem {
+	switch tkn.typ {
+	case T_INT:
+		return ts.I(tkn.val.(int))
+	case T_FLOAT:
+		return ts.F(tkn.val.(float64))
+	case T_STRING:
+		return ts.S(tkn.val.(string))
+	case T_WILDCARD:
+		return ts.Any()
+	case T_TUPLE:
+		tupleTokens := tkn.val.([]token)
+		tupleElems := []ts.Elem{}
+		for _, optTkn := range tupleTokens {
+			tupleElems = append(tupleElems, l.elemFromToken(optTkn))
 		}
+		return ts.T(ts.MakeTuple(tupleElems...))
+	default:
+		return ts.None()
 	}
-	return ts.None()
 }
 
-func (l *Lexer) parseNumber() opt.Maybe[token] {
+func (l Lexer) parseNumber() (token, error) {
 	start := l.pos
 	isFloat := false
 	for l.pos < len(l.buf) {
@@ -112,7 +127,7 @@ func (l *Lexer) parseNumber() opt.Maybe[token] {
 			l.pos += 1
 		case r == '.':
 			if isFloat {
-				panic("float number with double decimal points")
+				return token{}, errors.New("float number with double decimal points")
 			} else {
 				isFloat = true
 				l.pos += 1
@@ -123,37 +138,63 @@ func (l *Lexer) parseNumber() opt.Maybe[token] {
 	}
 
 	var typ tokenType
+	var strVal string = string(l.buf[start:l.pos])
 	if isFloat {
 		typ = T_FLOAT
+		f, err := strconv.ParseFloat(strVal, 8)
+		if err != nil {
+			return token{}, err
+		} else {
+			return token{typ, f}, nil
+		}
 	} else {
 		typ = T_INT
+		i, err := strconv.Atoi(strVal)
+		if err != nil {
+			panic(err)
+		} else {
+			return token{typ, i}, nil
+		}
 	}
-	return opt.NewJust(token{typ, string(l.buf[start:l.pos])})
 }
 
-func (l *Lexer) parseString() opt.Maybe[token] {
+func (l Lexer) parseString() (token, error) {
 	l.pos += 1
 	start := l.pos
 	for l.buf[l.pos] != '"' {
 		l.pos += 1
 
 		if l.pos >= len(l.buf) {
-			fmt.Println("error: incomplete string!")
-			return opt.NewNothing[token]()
+			return token{}, errors.New("error: incomplete string!")
 		}
 	}
 
 	l.pos += 1
 
-	return opt.NewJust(token{T_STRING, string(l.buf[start:l.pos])})
+	return token{T_STRING, string(l.buf[start:l.pos])}, nil
 }
 
-func (l *Lexer) parseWildcard() opt.Maybe[token] {
+func (l Lexer) parseWildcard() token {
 	start := l.pos
 	l.pos += 1
-	return opt.NewJust(token{T_WILDCARD, string(l.buf[start:l.pos])})
+	return token{T_WILDCARD, string(l.buf[start:l.pos])}
 }
 
-func (l *Lexer) parseTuple() opt.Maybe[token] {
-	// TODO
+func (l Lexer) parseTuple() (token, error) {
+	l.pos += 1
+	tupleItems := []token{}
+	for l.buf[l.pos] != ')' {
+
+		nextToken, tknErr := l.matchToken()
+		if tknErr != nil {
+			return token{}, tknErr
+		}
+
+		tupleItems = append(tupleItems, nextToken)
+		if l.pos >= len(l.buf) {
+			return token{}, errors.New("error: incomplete tuple")
+		}
+	}
+	l.pos += 1
+	return token{T_TUPLE, tupleItems}, nil
 }

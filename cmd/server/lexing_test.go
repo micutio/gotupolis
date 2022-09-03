@@ -1,9 +1,9 @@
 package gotupolis
 
 import (
+	"fmt"
 	"testing"
 
-	opt "github.com/micutio/goptional"
 	ts "github.com/micutio/gotupolis/pkg/tuplespace"
 )
 
@@ -12,9 +12,9 @@ func TestLexer(t *testing.T) {
 		"",
 		"(1)",
 	}
-	var expected = [...][]opt.Maybe[ts.Tuple]{
-		{opt.NewNothing[ts.Tuple]()},
-		{opt.NewJust[ts.Tuple](ts.MakeTuple(ts.I(1)))},
+	var expected = [...][]ts.Tuple{
+		{},
+		{ts.MakeTuple(ts.I(1))},
 	}
 
 	for i := range inputs {
@@ -22,15 +22,18 @@ func TestLexer(t *testing.T) {
 	}
 }
 
-func checkOutput(t *testing.T, input string, expected []opt.Maybe[ts.Tuple]) {
-	var output []opt.Maybe[ts.Tuple] = NewLexer(input).IntoTuples()
+func checkOutput(t *testing.T, input string, expected []ts.Tuple) {
+	output, err := NewLexer(input).IntoTuples()
+	if err != nil {
+		fmt.Println(err)
+	}
 
 	if len(output) != len(expected) {
 		t.Errorf("output and expected are of diffent length!\noutput: %v\nexpected: %v", output, expected)
 	} else {
 		isDifferent := false
 		for i := range output {
-			if output[i] != expected[i] {
+			if output[i].IsMatching(expected[i]) {
 				isDifferent = true
 				break
 			}
