@@ -11,10 +11,12 @@ func TestLexer(t *testing.T) {
 	var inputs = [...]string{
 		"",
 		"(1)",
+		"(2.0,3.14,\"steeze\")",
 	}
 	var expected = [...][]ts.Tuple{
 		{},
 		{ts.MakeTuple(ts.I(1))},
+		{ts.MakeTuple(ts.F(2.0), ts.F(3.14), ts.S("steeze"))},
 	}
 
 	for i := range inputs {
@@ -35,6 +37,7 @@ func checkOutput(t *testing.T, input string, expected []ts.Tuple) {
 		isDifferent := false
 		for i := range output {
 			if !output[i].IsMatching(expected[i]) {
+				fmt.Printf("element %v not matching %v", output[i], expected[i])
 				isDifferent = true
 				break
 			}

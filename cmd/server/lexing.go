@@ -180,7 +180,7 @@ func (l *Lexer) parseString() (token, error) {
 
 	l.pos += 1
 
-	return token{T_STRING, string(l.buf[start:l.pos])}, nil
+	return token{T_STRING, string(l.buf[start : l.pos-1])}, nil
 }
 
 func (l *Lexer) parseWildcard() token {
@@ -199,7 +199,10 @@ func (l *Lexer) parseTuple() (token, error) {
 			return token{}, tknErr
 		}
 
-		tupleItems = append(tupleItems, nextToken)
+		if nextToken.typ != T_NONE {
+			tupleItems = append(tupleItems, nextToken)
+		}
+
 		if l.pos >= len(l.buf) {
 			return token{}, errors.New("error: incomplete tuple")
 		}
