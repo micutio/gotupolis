@@ -87,9 +87,11 @@ func (l *Lexer) matchToken() (token, error) {
 		return l.parseWildcard(), nil
 	case '(':
 		return l.parseTuple()
+	case ' ':
+		fallthrough
 	case ',':
 		l.pos += 1
-		return token{T_NONE, nil}, nil
+		return l.matchToken()
 	default:
 		if unicode.IsDigit(r) {
 			return l.parseNumber()
