@@ -27,6 +27,9 @@ type token struct {
 	val interface{}
 }
 
+// The lexer is used to parse tuple definitions from an input string into the corresponding data
+// structure. It's internal state is the input string, represented as a slice of runes and the
+// current position of the parsing process.
 type Lexer struct {
 	pos int
 	buf []rune
@@ -41,6 +44,8 @@ func NewLexer(buffer string) Lexer {
 	}
 }
 
+// IntoTuples runs the lexer over the entire input and returns a slice of tuples.
+// Returns an error if the input cannot be parsed to completion.
 func (l *Lexer) IntoTuples() ([]ts.Tuple, error) {
 	tuples := []ts.Tuple{}
 
@@ -56,6 +61,8 @@ func (l *Lexer) IntoTuples() ([]ts.Tuple, error) {
 // nextTuple returns the next tuple contained in the string.
 // If the string is empty or the Lexer has reached the end or no tuple can be read for some reason,
 // then an empty option will be returned.
+// Returns an error if the remaining input does not contain a fully formed tuple or any of its
+// constituent elements cannot be parsed.
 func (l *Lexer) nextTuple() (opt.Maybe[ts.Tuple], error) {
 	if l.pos >= len(l.buf) {
 		return opt.NewNothing[ts.Tuple](), nil
@@ -76,6 +83,9 @@ func (l *Lexer) nextTuple() (opt.Maybe[ts.Tuple], error) {
 	}
 }
 
+// matchToken returns the next token in the string.
+// Returns an error if the token cannot be serialised into the tuple element data types
+// (integer, floating point, string, tuple, wildcard).
 func (l *Lexer) matchToken() (token, error) {
 	r := l.buf[l.pos]
 	switch r {
@@ -102,6 +112,7 @@ func (l *Lexer) matchToken() (token, error) {
 	}
 }
 
+// elemFromToken converts a token into the corresponding tuple element
 func (l *Lexer) elemFromToken(tkn token) ts.Elem {
 	switch tkn.typ {
 	case T_INT:
@@ -124,6 +135,9 @@ func (l *Lexer) elemFromToken(tkn token) ts.Elem {
 	}
 }
 
+// parseNumber attempts to parse an integer or floating point number from the input string.
+// Returns an error if the parsed token is not a valid number, e.g.: multiple decimal points or
+// contains any non-numerical symbols.
 func (l *Lexer) parseNumber() (token, error) {
 	start := l.pos
 	isFloat := false
@@ -138,6 +152,13 @@ Loop:
 			} else {
 				isFloat = true
 				l.pos += 1
+			}
+		case '-':
+			if l.pos == start {
+				l.pos += 1
+			} else {
+				// only allow a minus at the start of the number
+				break Loop
 			}
 		default:
 			if unicode.IsDigit(r) {
@@ -169,6 +190,9 @@ Loop:
 	}
 }
 
+// parseString attemps to parse a string from the input.
+// Returns an error if it does not encounter a closing quote mark before reaching the end of the
+// input.
 func (l *Lexer) parseString() (token, error) {
 	l.pos += 1
 	start := l.pos
@@ -185,12 +209,15 @@ func (l *Lexer) parseString() (token, error) {
 	return token{T_STRING, string(l.buf[start : l.pos-1])}, nil
 }
 
+// parseWildcard parses a single wildcard character (underscore)
 func (l *Lexer) parseWildcard() token {
 	start := l.pos
 	l.pos += 1
 	return token{T_WILDCARD, string(l.buf[start:l.pos])}
 }
 
+// parseTuple parses a complete tuple from the input.
+// Returns an error if it does not encounter a closing parens before reaching the end of the input.
 func (l *Lexer) parseTuple() (token, error) {
 	l.pos += 1
 	tupleItems := []token{}

@@ -13,7 +13,7 @@ func TestLexer(t *testing.T) {
 		"(1)",
 		"(2.0,3.14,\"steeze\")",
 		"(1,2.0,\"3.14\",_,666),(\"foo\",\"bar\")",
-		"(1,2.0,\"3.14\",_,666), (\"foo\",\"bar\"), ((1,2,3),(4.1,5.1,\"6.1\"))",
+		"(1,2.0,\"3.14\",_,666), (\"foo\",\"bar\"), ((1,-2,-3),(-4.1,5.1,\"6.1\"))",
 	}
 	var expected = [...][]ts.Tuple{
 		{},
@@ -24,8 +24,8 @@ func TestLexer(t *testing.T) {
 		{ts.MakeTuple(ts.I(1), ts.F(2.0), ts.S("3.14"), ts.Any(), ts.I(666)),
 			ts.MakeTuple(ts.S("foo"), ts.S("bar")),
 			ts.MakeTuple(
-				ts.T(ts.MakeTuple(ts.I(1), ts.I(2), ts.I(3))),
-				ts.T(ts.MakeTuple(ts.F(4.1), ts.F(5.1), ts.S("6.1"))),
+				ts.T(ts.MakeTuple(ts.I(1), ts.I(-2), ts.I(-3))),
+				ts.T(ts.MakeTuple(ts.F(-4.1), ts.F(5.1), ts.S("6.1"))),
 			)},
 	}
 
