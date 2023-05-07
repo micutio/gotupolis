@@ -15,7 +15,7 @@ const (
 	UDP Protocol = 2
 )
 
-func toString(p Protocol) string {
+func (p Protocol) toString() string {
 	switch p {
 	case TCP:
 		return "tcp"
@@ -59,7 +59,7 @@ func handleIncomingRequest(conn net.Conn) {
 
 func (s Server) Launch() {
 	fmt.Println("gotupolis server")
-	listen, err := net.Listen(fmt.Sprint(s.protocol), s.host+":"+string(s.port))
+	listen, err := net.Listen(s.protocol.toString(), s.host+":"+fmt.Sprint(s.port))
 	if err != nil {
 		log.Fatal(err)
 		os.Exit(1)
