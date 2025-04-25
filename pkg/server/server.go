@@ -1,4 +1,4 @@
-package gotupolis
+package server
 
 import (
 	"fmt"
@@ -36,7 +36,7 @@ type Server struct {
 	port     int
 }
 
-func (Server) init(protocol Protocol, host string, port int) Server {
+func NewServer(protocol Protocol, host string, port int) Server {
 	s := Server{protocol, host, port}
 	return s
 }
@@ -49,9 +49,9 @@ func handleIncomingRequest(conn net.Conn) {
 		log.Fatal(err)
 	}
 	// respond
-	time := time.Now().Format("Monday, 02-Jan-06 15:04:05 MST")
+	timeStamp := time.Now().Format("Monday, 02-Jan-06 15:04:05 MST")
 	conn.Write([]byte("Hi back!\n"))
-	conn.Write([]byte(time))
+	conn.Write([]byte(timeStamp))
 
 	// close conn
 	conn.Close()

@@ -1,4 +1,4 @@
-package gotupolis
+package server
 
 import (
 	"fmt"

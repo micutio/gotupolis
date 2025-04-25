@@ -1,4 +1,4 @@
-package gotupolis
+package tuplespace
 
 import (
 	"fmt"
@@ -9,17 +9,17 @@ import (
 )
 
 // The Store defines an interface that any concrete implementation of a tuple space has to follow.
-// The tuplespace assumes the store implementation to be thread-safe in order to allow concurrent
+// The tuple space assumes the store implementation to be thread-safe in order to allow concurrent
 // access.
 type Store interface {
 
-	// Read a tuple that matches the argument and remove it from the space.
+	// In returns a tuple that matches the argument and remove it from the space.
 	In(query Tuple) opt.Maybe[Tuple]
 
-	// Read a tuple that matches the argument.
+	// Read returns a tuple that matches the argument.
 	Read(query Tuple) opt.Maybe[Tuple]
 
-	// Write a tuple into the tuple space.
+	// Out writes a tuple into the tuple space.
 	Out(tuple Tuple) bool
 }
 

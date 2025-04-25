@@ -1,4 +1,4 @@
-package gotupolis
+package tuplespace
 
 import (
 	"fmt"
@@ -37,24 +37,17 @@ const (
 	GT int = 1
 )
 
-func min(x, y int) int {
-	if x < y {
-		return x
-	}
-	return y
-}
-
 // Elem acts as an element container, holding a generic element and its type indication.
 type Elem struct {
 	elemType  TupleElement
-	elemValue interface{}
+	elemValue any
 }
 
 func (e Elem) GetType() TupleElement {
 	return e.elemType
 }
 
-func (e Elem) GetValue() interface{} {
+func (e Elem) GetValue() any {
 	return e.elemValue
 }
 
@@ -99,7 +92,7 @@ func T(tupleVal Tuple) Elem {
 	return Elem{TUPLE, tupleVal}
 }
 
-// A instantiates a Wildcard tuple element.
+// Any instantiates a Wildcard tuple element.
 func Any() Elem {
 	return Elem{ANY, nil}
 }
@@ -108,7 +101,7 @@ func None() Elem {
 	return Elem{NONE, nil}
 }
 
-// Returns true if the element is defined, false if it is a wildcard or none
+// IsDefined returns true if the element is defined, false if it is a wildcard or none.
 func (e Elem) IsDefined() bool {
 	switch e.elemType {
 	case INT:
@@ -136,7 +129,7 @@ func (e Elem) isMatching(other Elem) bool {
 	}
 
 	if e.elemType == FLOAT && other.elemType == FLOAT {
-		return (math.Abs(e.elemValue.(float64)-other.elemValue.(float64)) < FLOATPRECISION)
+		return math.Abs(e.elemValue.(float64)-other.elemValue.(float64)) < FLOATPRECISION
 	}
 
 	if e.elemType == STRING && other.elemType == STRING {
@@ -281,7 +274,7 @@ func MakeTuple(element ...Elem) Tuple {
 	return resultTuple
 }
 
-// Returns true if the tuple does not contain any wildcards or none fields
+// IsDefined returns true if the tuple does not contain any wildcards or none fields
 func (t Tuple) IsDefined() bool {
 	for _, v := range t.elements {
 		if !v.IsDefined() {
@@ -305,7 +298,7 @@ func (t Tuple) IsMatching(other Tuple) bool {
 	}
 
 	// Check each element for equality.
-	for i := 0; i < tSize; i++ {
+	for i := range tSize {
 		if !t.elements[i].isMatching(other.elements[i]) {
 			return false
 		}
@@ -318,11 +311,10 @@ func (t Tuple) IsMatching(other Tuple) bool {
 func (t Tuple) order(other Tuple) int {
 	tSize := len(t.elements)
 	otherSize := len(other.elements)
-
 	shorterSize := min(tSize, otherSize)
 
 	// Check each element for equality.
-	for i := 0; i < shorterSize; i++ {
+	for i := range shorterSize {
 		if ord := t.elements[i].order(other.elements[i]); ord != EQ {
 			return ord
 		}
@@ -339,7 +331,7 @@ func (t Tuple) order(other Tuple) int {
 	return GT
 }
 
-// Comparator function for ordering tuples, used for tidwall/btree.
+// TupleOrder is a comparator function for ordering tuples, used for tidwall/btree.
 // Returns `true` if t1 is considered _less than_ t2, `false` otherwise.
 func TupleOrder(t1, t2 Tuple) bool {
 	return t1.order(t2) == LT

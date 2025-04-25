@@ -1,4 +1,4 @@
-package gotupolis
+package tuplespace
 
 import "testing"
 
