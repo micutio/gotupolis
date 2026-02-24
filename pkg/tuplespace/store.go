@@ -12,7 +12,6 @@ import (
 // The tuple space assumes the store implementation to be thread-safe in order to allow concurrent
 // access.
 type Store interface {
-
 	// In returns a tuple that matches the argument and remove it from the space.
 	In(query Tuple) opt.Maybe[Tuple]
 
@@ -40,9 +39,9 @@ func (store *BTreeStore) In(query Tuple) opt.Maybe[Tuple] {
 		if tuple.IsMatching(query) {
 			store.tree.Delete(tuple)
 			return opt.NewJust(tuple)
-		} else {
-			fmt.Printf("[In] tuple %v does not match query %v\n", tuple, query)
 		}
+
+		fmt.Printf("[In] tuple %v does not match query %v\n", tuple, query)
 	}
 	return opt.NewNothing[Tuple]()
 }
@@ -53,21 +52,21 @@ func (store *BTreeStore) Read(query Tuple) opt.Maybe[Tuple] {
 	if found {
 		if tuple.IsMatching(query) {
 			return opt.NewJust(tuple)
-		} else {
-			fmt.Printf("[Read] tuple %v does not match query %v\n", tuple, query)
 		}
+
+		fmt.Printf("[Read] tuple %v does not match query %v\n", tuple, query)
 	}
 	return opt.NewNothing[Tuple]()
 }
 
 // Out implements the `Out` function of the `Store` interface
-// Returns `true` if the tuple was inserted, false otherwise
+// Returns `true` if the tuple was inserted, false otherwise.
 func (store *BTreeStore) Out(tuple Tuple) bool {
 	if !tuple.IsDefined() {
 		fmt.Printf("[Out] Warning: attempt to store undefined tuple %v \n", tuple)
 		return false
-	} else {
-		store.tree.Set(tuple)
-		return true
 	}
+
+	store.tree.Set(tuple)
+	return true
 }

@@ -57,7 +57,6 @@ func TestStore(t *testing.T) {
 	if tupleOpt2c.IsPresent() {
 		t.Errorf("Error: store should not contain tuple %v anymore", tup)
 	}
-
 }
 
 func getStoreImpl() Store {

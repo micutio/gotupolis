@@ -7,33 +7,33 @@ import (
 )
 
 const (
-	// FLOATPRECISION sets the error for floating point comparison
-	FLOATPRECISION float64 = 0.0000001
+	// FloatPrecision sets the error for floating point comparison.
+	FloatPrecision float64 = 0.0000001
 )
 
 type TupleElement uint
 
 const (
-	// INT indicates 32bit-integers.
-	INT TupleElement = 1
-	// FLOAT indicates double precision (64bit) floating point numbers.
-	FLOAT = 2
-	// STRING indicates... well... strings.
-	STRING = 3
-	// TUPLE indicates a nested tuple.
-	TUPLE = 4
-	// ANY indicates any possible type of the above, functioning as a wildcard.
-	ANY = 5
-	// NONE indicates an invalid type
-	NONE = 0
+	// ElemInt indicates 32bit-integers.
+	ElemInt TupleElement = 1
+	// ElemFloat indicates double precision (64bit) floating point numbers.
+	ElemFloat = 2
+	// ElemString indicates... well... strings.
+	ElemString = 3
+	// ElemTuple indicates a nested tuple.
+	ElemTuple = 4
+	// ElemAny indicates any possible type of the above, functioning as a wildcard.
+	ElemAny = 5
+	// ElemNone indicates an invalid type.
+	ElemNone = 0
 )
 
 const (
-	// LT is the `less than` return value for order comparisons
+	// LT is the `less than` return value for order comparisons.
 	LT int = -1
-	// EQ is the `equals` return value for order comparisons
+	// EQ is the `equals` return value for order comparisons.
 	EQ int = 0
-	// GT is the `greater than` return value for order comparisons
+	// GT is the `greater than` return value for order comparisons.
 	GT int = 1
 )
 
@@ -53,17 +53,17 @@ func (e Elem) GetValue() any {
 
 func (e Elem) String() string {
 	switch e.elemType {
-	case INT:
+	case ElemInt:
 		return fmt.Sprintf("%v", e.elemValue.(int))
-	case FLOAT:
+	case ElemFloat:
 		return fmt.Sprintf("%v", e.elemValue.(float64))
-	case STRING:
+	case ElemString:
 		return fmt.Sprintf("\"%v\"", e.elemValue.(string))
-	case TUPLE:
+	case ElemTuple:
 		return e.elemValue.(Tuple).String()
-	case ANY:
+	case ElemAny:
 		return "_"
-	case NONE:
+	case ElemNone:
 		return "nil"
 	default:
 		panic(fmt.Sprintf("Error: invalid elem type %T", e.elemValue))
@@ -74,47 +74,47 @@ func (e Elem) String() string {
 
 // I instantiates an int-type tuple element.
 func I(intVal int) Elem {
-	return Elem{INT, intVal}
+	return Elem{ElemInt, intVal}
 }
 
 // F instantiates a double precision (64bit) float64-type tuple element.
 func F(floatVal float64) Elem {
-	return Elem{FLOAT, floatVal}
+	return Elem{ElemFloat, floatVal}
 }
 
 // S instantiates a string-type tuple element.
 func S(stringVal string) Elem {
-	return Elem{STRING, stringVal}
+	return Elem{ElemString, stringVal}
 }
 
 // T instantiates a Tuple-type tuple element.
 func T(tupleVal Tuple) Elem {
-	return Elem{TUPLE, tupleVal}
+	return Elem{ElemTuple, tupleVal}
 }
 
 // Any instantiates a Wildcard tuple element.
 func Any() Elem {
-	return Elem{ANY, nil}
+	return Elem{ElemAny, nil}
 }
 
 func None() Elem {
-	return Elem{NONE, nil}
+	return Elem{ElemNone, nil}
 }
 
 // IsDefined returns true if the element is defined, false if it is a wildcard or none.
 func (e Elem) IsDefined() bool {
 	switch e.elemType {
-	case INT:
+	case ElemInt:
 		return true
-	case FLOAT:
+	case ElemFloat:
 		return true
-	case STRING:
+	case ElemString:
 		return true
-	case TUPLE:
+	case ElemTuple:
 		return e.elemValue.(Tuple).IsDefined()
-	case ANY:
+	case ElemAny:
 		return false
-	case NONE:
+	case ElemNone:
 		return false
 	default:
 		panic(fmt.Sprintf("Error: invalid elem type %T", e.elemValue))
@@ -124,26 +124,26 @@ func (e Elem) IsDefined() bool {
 // Match two elements for equality, which is true either if they are of the same type and value
 // or one or both are wildcards.
 func (e Elem) isMatching(other Elem) bool {
-	if e.elemType == INT && other.elemType == INT {
+	if e.elemType == ElemInt && other.elemType == ElemInt {
 		return e.elemValue.(int) == other.elemValue.(int)
 	}
 
-	if e.elemType == FLOAT && other.elemType == FLOAT {
-		return math.Abs(e.elemValue.(float64)-other.elemValue.(float64)) < FLOATPRECISION
+	if e.elemType == ElemFloat && other.elemType == ElemFloat {
+		return math.Abs(e.elemValue.(float64)-other.elemValue.(float64)) < FloatPrecision
 	}
 
-	if e.elemType == STRING && other.elemType == STRING {
+	if e.elemType == ElemString && other.elemType == ElemString {
 		return e.elemValue.(string) == other.elemValue.(string)
 	}
-	if e.elemType == TUPLE && other.elemType == TUPLE {
+	if e.elemType == ElemTuple && other.elemType == ElemTuple {
 		return e.elemValue.(Tuple).IsMatching(other.elemValue.(Tuple))
 	}
 
-	if e.elemType == NONE || other.elemType == NONE {
+	if e.elemType == ElemNone || other.elemType == ElemNone {
 		return false
 	}
 
-	if e.elemType == ANY || other.elemType == ANY {
+	if e.elemType == ElemAny || other.elemType == ElemAny {
 		return true
 	}
 	return false
@@ -151,88 +151,105 @@ func (e Elem) isMatching(other Elem) bool {
 
 // Comparator function, used for determining ordering of two elements.
 // The order between elements of different type is arbitrary, but consistent.
-// ANY < tuple < string < double < int < nil
+// ElemAny < tuple < string < double < int < nil
 // The order between elements of the same type is the builtin in golang
 // Note to self: discussion about value receiver vs pointer receiver:
 //
 //	https://stackoverflow.com/questions/27775376/value-receiver-vs-pointer-receiver-in-golang
 //
-// Returns 1 if this e > other, -1 if e < other, 0 if both are equal
+// Returns 1 if this e > other, -1 if e < other, 0 if both are equal.
 func (e Elem) order(other Elem) int {
 	switch e.elemType {
-
-	case ANY:
+	case ElemAny:
 		return EQ
 
-	case TUPLE:
-		switch other.elemType {
-		case ANY:
-			return EQ
-		case TUPLE:
-			return e.elemValue.(Tuple).order(other.elemValue.(Tuple))
-		default:
-			return LT
-		}
+	case ElemTuple:
+		return e.orderTuples(other)
 
-	case STRING:
-		switch other.elemType {
-		case ANY:
-			return EQ
-		case TUPLE:
-			return GT
-		case STRING:
-			if e.elemValue.(string) < other.elemValue.(string) {
-				return LT
-			}
-			if e.elemValue.(string) == other.elemValue.(string) {
-				return EQ
-			}
-			return GT
-		case FLOAT:
-		case INT:
-		case NONE:
-			return LT
-		}
+	case ElemString:
+		return e.orderStrings(other)
 
-	case FLOAT:
-		switch other.elemType {
-		case ANY:
-			return EQ
-		case TUPLE:
-		case STRING:
-			return GT
-		case FLOAT:
-			if e.elemValue.(float64) < other.elemValue.(float64) {
-				return LT
-			}
-			if e.elemValue.(float64) == other.elemValue.(float64) {
-				return EQ
-			}
-			return GT
-		case INT:
-		case NONE:
-			return LT
-		}
+	case ElemFloat:
+		return e.orderFloats(other)
 
-	case INT:
-		if other.elemType == ANY {
-			return EQ
-		}
-		if other.elemType == INT {
-			if e.elemValue.(int) < other.elemValue.(int) {
-				return LT
-			}
-			if e.elemValue.(int) == other.elemValue.(int) {
-				return EQ
-			}
-			return GT
-		}
-		if other.elemType == NONE {
-			return GT
-		}
-		return LT
+	case ElemInt:
+		return e.orderInts(other)
+
 	default:
 		return LT
+	}
+}
+
+func (e Elem) orderTuples(other Elem) int {
+	switch other.elemType {
+	case ElemAny:
+		return EQ
+	case ElemTuple:
+		return e.elemValue.(Tuple).order(other.elemValue.(Tuple))
+	default:
+		return LT
+	}
+}
+
+func (e Elem) orderStrings(other Elem) int {
+	switch other.elemType {
+	case ElemAny:
+		return EQ
+	case ElemTuple:
+		return GT
+	case ElemString:
+		if e.elemValue.(string) < other.elemValue.(string) {
+			return LT
+		}
+		if e.elemValue.(string) == other.elemValue.(string) {
+			return EQ
+		}
+		return GT
+	case ElemFloat:
+	case ElemInt:
+	case ElemNone:
+		return LT
+	}
+	return LT
+}
+
+func (e Elem) orderFloats(other Elem) int {
+	switch other.elemType {
+	case ElemAny:
+		return EQ
+	case ElemTuple:
+	case ElemString:
+		return GT
+	case ElemFloat:
+		if e.elemValue.(float64) < other.elemValue.(float64) {
+			return LT
+		}
+		if e.elemValue.(float64) == other.elemValue.(float64) {
+			return EQ
+		}
+		return GT
+	case ElemInt:
+	case ElemNone:
+		return LT
+	}
+	return LT
+}
+
+func (e Elem) orderInts(other Elem) int {
+	if other.elemType == ElemAny {
+		return EQ
+	}
+	if other.elemType == ElemInt {
+		if e.elemValue.(int) < other.elemValue.(int) {
+			return LT
+		}
+		if e.elemValue.(int) == other.elemValue.(int) {
+			return EQ
+		}
+		return GT
+	}
+	if other.elemType == ElemNone {
+		return GT
 	}
 	return LT
 }
@@ -243,6 +260,7 @@ func (e Elem) order(other Elem) int {
 // - strings
 // - tuples themselves
 // - wildcards
+// .
 type Tuple struct {
 	elements []Elem
 }
@@ -274,7 +292,7 @@ func MakeTuple(element ...Elem) Tuple {
 	return resultTuple
 }
 
-// IsDefined returns true if the tuple does not contain any wildcards or none fields
+// IsDefined returns true if the tuple does not contain any wildcards or none fields.
 func (t Tuple) IsDefined() bool {
 	for _, v := range t.elements {
 		if !v.IsDefined() {
@@ -286,8 +304,8 @@ func (t Tuple) IsDefined() bool {
 }
 
 // IsMatching checks two tuples for equality, which is true if
-// - they are of the same lenght AND
-// - each element of one matches the others
+// - they are of the same length AND
+// - each element of one matches the others.
 func (t Tuple) IsMatching(other Tuple) bool {
 	tSize := len(t.elements)
 	otherSize := len(other.elements)

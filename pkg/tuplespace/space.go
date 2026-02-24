@@ -11,12 +11,12 @@ type Space struct {
 	store Store
 }
 
-// NewSpace creates a new space instance that uses the default store implementation `SimpleStore`
+// NewSpace creates a new space instance that uses the default store implementation `SimpleStore`.
 func NewSpace() *Space {
 	return &Space{store: NewSimpleStore()}
 }
 
-// MakeSpace creates a new space that uses the given store implementation
+// MakeSpace creates a new space that uses the given store implementation.
 func MakeSpace(store Store) *Space {
 	return &Space{store}
 }

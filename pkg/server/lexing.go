@@ -12,14 +12,14 @@ import (
 
 type tokenType uint
 
-// Token types
+// Token types.
 const (
-	T_INT      tokenType = 1
-	T_FLOAT              = 2
-	T_STRING             = 3
-	T_TUPLE              = 4
-	T_WILDCARD           = 5
-	T_NONE               = 6
+	typeInt      tokenType = 1
+	typeFloat              = 2
+	typeStr                = 3
+	typeTuple              = 4
+	typeWildcard           = 5
+	typeNone               = 6
 )
 
 type token struct {
@@ -27,7 +27,7 @@ type token struct {
 	val interface{}
 }
 
-// The lexer is used to parse tuple definitions from an input string into the corresponding data
+// Lexer is used to parse tuple definitions from an input string into the corresponding data
 // structure. It's internal state is the input string, represented as a slice of runes and the
 // current position of the parsing process.
 type Lexer struct {
@@ -35,8 +35,8 @@ type Lexer struct {
 	buf []rune
 }
 
-// Initialise a new Lexer instance with a string that is supposed to contain N tuple definitions,
-// with 0<=N.
+// NewLexer Initialises a new Lexer instance with a string that is supposed to contain N tuple
+// definitions, with 0<=N.
 func NewLexer(buffer string) Lexer {
 	return Lexer{
 		pos: 0,
@@ -47,7 +47,7 @@ func NewLexer(buffer string) Lexer {
 // IntoTuples runs the lexer over the entire input and returns a slice of tuples.
 // Returns an error if the input cannot be parsed to completion.
 func (l *Lexer) IntoTuples() ([]ts.Tuple, error) {
-	tuples := []ts.Tuple{}
+	var tuples []ts.Tuple
 
 	for t, err := l.nextTuple(); ; t, err = l.nextTuple() {
 		if t.IsPresent() {
@@ -75,12 +75,12 @@ func (l *Lexer) nextTuple() (opt.Maybe[ts.Tuple], error) {
 	}
 
 	elem := l.elemFromToken(tkn)
-	if elem.GetType() == ts.TUPLE {
+	if elem.GetType() == ts.ElemTuple {
 		tupleVal := elem.GetValue().(ts.Tuple)
-		return opt.NewJust(ts.Tuple(tupleVal)), nil
-	} else {
-		return opt.NewJust(ts.MakeTuple()), nil
+		return opt.NewJust(tupleVal), nil
 	}
+
+	return opt.NewJust(ts.MakeTuple()), nil
 }
 
 // matchToken returns the next token in the string.
@@ -108,24 +108,24 @@ func (l *Lexer) matchToken() (token, error) {
 		}
 		err := errors.New(fmt.Sprintf("invalid symbol '%v'", r))
 		l.pos += 1
-		return token{T_NONE, nil}, err
+		return token{typeNone, nil}, err
 	}
 }
 
-// elemFromToken converts a token into the corresponding tuple element
+// elemFromToken converts a token into the corresponding tuple element.
 func (l *Lexer) elemFromToken(tkn token) ts.Elem {
 	switch tkn.typ {
-	case T_INT:
+	case typeInt:
 		return ts.I(tkn.val.(int))
-	case T_FLOAT:
+	case typeFloat:
 		return ts.F(tkn.val.(float64))
-	case T_STRING:
+	case typeStr:
 		return ts.S(tkn.val.(string))
-	case T_WILDCARD:
+	case typeWildcard:
 		return ts.Any()
-	case T_TUPLE:
+	case typeTuple:
 		tupleTokens := tkn.val.([]token)
-		tupleElems := []ts.Elem{}
+		var tupleElems []ts.Elem
 		for _, optTkn := range tupleTokens {
 			tupleElems = append(tupleElems, l.elemFromToken(optTkn))
 		}
@@ -142,55 +142,61 @@ func (l *Lexer) parseNumber() (token, error) {
 	start := l.pos
 	isFloat := false
 
-Loop:
 	for l.pos < len(l.buf) {
-		r := l.buf[l.pos]
-		switch r {
+		char := l.buf[l.pos]
+		switch char {
 		case '.':
 			if isFloat {
 				return token{}, errors.New("float number with double decimal points")
-			} else {
-				isFloat = true
-				l.pos += 1
 			}
+
+			isFloat = true
+			l.pos += 1
+			break
 		case '-':
 			if l.pos == start {
 				l.pos += 1
 			} else {
 				// only allow a minus at the start of the number
-				break Loop
+				continue
 			}
+			break
 		default:
-			if unicode.IsDigit(r) {
+			if unicode.IsDigit(char) {
 				l.pos += 1
 			} else {
-				break Loop
+				continue
 			}
 		}
 	}
 
-	var typ tokenType
-	var strVal string = string(l.buf[start:l.pos])
 	if isFloat {
-		typ = T_FLOAT
-		f, err := strconv.ParseFloat(strVal, 8)
-		if err != nil {
-			return token{}, err
-		} else {
-			return token{typ, f}, nil
-		}
-	} else {
-		typ = T_INT
-		i, err := strconv.Atoi(strVal)
-		if err != nil {
-			return token{}, err
-		} else {
-			return token{typ, i}, nil
-		}
+		return l.parseFloat(start)
 	}
+
+	return l.parseInt(start)
 }
 
-// parseString attemps to parse a string from the input.
+func (l *Lexer) parseFloat(start int) (token, error) {
+	strVal := string(l.buf[start:l.pos])
+	f, err := strconv.ParseFloat(strVal, 8)
+	if err != nil {
+		return token{}, err
+	}
+
+	return token{typeFloat, f}, nil
+}
+
+func (l *Lexer) parseInt(start int) (token, error) {
+	strVal := string(l.buf[start:l.pos])
+	i, err := strconv.Atoi(strVal)
+	if err != nil {
+		return token{}, err
+	}
+	return token{typeInt, i}, nil
+}
+
+// parseString attempts to parse a string from the input.
 // Returns an error if it does not encounter a closing quote mark before reaching the end of the
 // input.
 func (l *Lexer) parseString() (token, error) {
@@ -200,35 +206,34 @@ func (l *Lexer) parseString() (token, error) {
 		l.pos += 1
 
 		if l.pos >= len(l.buf) {
-			return token{}, errors.New("error: incomplete string!")
+			return token{}, errors.New("parseString: incomplete string")
 		}
 	}
 
 	l.pos += 1
 
-	return token{T_STRING, string(l.buf[start : l.pos-1])}, nil
+	return token{typeStr, string(l.buf[start : l.pos-1])}, nil
 }
 
-// parseWildcard parses a single wildcard character (underscore)
+// parseWildcard parses a single wildcard character (underscore).
 func (l *Lexer) parseWildcard() token {
 	start := l.pos
 	l.pos += 1
-	return token{T_WILDCARD, string(l.buf[start:l.pos])}
+	return token{typeWildcard, string(l.buf[start:l.pos])}
 }
 
 // parseTuple parses a complete tuple from the input.
 // Returns an error if it does not encounter a closing parens before reaching the end of the input.
 func (l *Lexer) parseTuple() (token, error) {
 	l.pos += 1
-	tupleItems := []token{}
+	var tupleItems []token
 	for l.buf[l.pos] != ')' {
-
 		nextToken, tknErr := l.matchToken()
 		if tknErr != nil {
 			return token{}, tknErr
 		}
 
-		if nextToken.typ != T_NONE {
+		if nextToken.typ != typeNone {
 			tupleItems = append(tupleItems, nextToken)
 		}
 
@@ -237,5 +242,5 @@ func (l *Lexer) parseTuple() (token, error) {
 		}
 	}
 	l.pos += 1
-	return token{T_TUPLE, tupleItems}, nil
+	return token{typeTuple, tupleItems}, nil
 }
