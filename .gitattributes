@@ -1,0 +1,19 @@
+# and force them to LF (Unix-style) on checkout.
+* text=auto eol=lf
+
+# Explicitly declare Go source files as LF
+*.go text eol=lf
+
+# Ensure common web/config files also stay LF
+*.mod text eol=lf
+*.sum text eol=lf
+*.json text eol=lf
+*.yaml text eol=lf
+*.yml text eol=lf
+*.md text eol=lf
+
+# Denote binary files (Git won't touch line endings here)
+*.png binary
+*.jpg binary
+*.gif binary
+*.exe binary
