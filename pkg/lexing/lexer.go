@@ -141,6 +141,7 @@ func (l *Lexer) parseNumber() (token, error) {
 	start := l.pos
 	isFloat := false
 
+numberLoop:
 	for l.pos < len(l.buf) {
 		char := l.buf[l.pos]
 		switch char {
@@ -151,20 +152,19 @@ func (l *Lexer) parseNumber() (token, error) {
 
 			isFloat = true
 			l.pos += 1
-			break
 		case '-':
 			if l.pos == start {
 				l.pos += 1
 			} else {
-				// only allow a minus at the start of the number
-				continue
+				// only allow a minus at the start of the number; stop here
+				break numberLoop
 			}
-			break
 		default:
 			if unicode.IsDigit(char) {
 				l.pos += 1
 			} else {
-				continue
+				// end of number
+				break numberLoop
 			}
 		}
 	}
