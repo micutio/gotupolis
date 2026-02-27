@@ -22,19 +22,19 @@ func TestStore(t *testing.T) {
 	}
 
 	tupleOpt1a := store.Read(tup)
-	if !tupleOpt1a.IsPresent() {
+	if !tupleOpt1a.OK {
 		t.Errorf("Error: cannot find tuple %v", tup)
 	}
 
 	// since we've only read the tuple, it should still be in the store
 	tupleOpt1b := store.In(tup)
-	if !tupleOpt1b.IsPresent() {
+	if !tupleOpt1b.OK {
 		t.Errorf("Error: cannot find tuple %v", tup)
 	}
 
 	// now the tuple should be gone
 	tupleOpt1c := store.In(tup)
-	if tupleOpt1c.IsPresent() {
+	if tupleOpt1c.OK {
 		t.Errorf("Error: store should not contain tuple %v anymore", tup)
 	}
 
@@ -42,19 +42,19 @@ func TestStore(t *testing.T) {
 	store.Out(tup)
 
 	tupleOpt2a := store.Read(query)
-	if !tupleOpt2a.IsPresent() {
+	if !tupleOpt2a.OK {
 		t.Errorf("Error: cannot find tuple %v", query)
 	}
 
 	// since we've only read the tuple, it should still be in the store
 	tupleOpt2b := store.In(query)
-	if !tupleOpt2b.IsPresent() {
+	if !tupleOpt2b.OK {
 		t.Errorf("Error: cannot find tuple %v", query)
 	}
 
 	// now the tuple should be gone
 	tupleOpt2c := store.In(query)
-	if tupleOpt2c.IsPresent() {
+	if tupleOpt2c.OK {
 		t.Errorf("Error: store should not contain tuple %v anymore", tup)
 	}
 }

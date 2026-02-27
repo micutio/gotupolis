@@ -6,7 +6,6 @@ import (
 	"strconv"
 	"unicode"
 
-	opt "github.com/micutio/goptional"
 	ts "github.com/micutio/gotupolis/pkg/tuplespace"
 )
 
@@ -49,9 +48,9 @@ func NewLexer(buffer string) Lexer {
 func (l *Lexer) IntoTuples() ([]ts.Tuple, error) {
 	var tuples []ts.Tuple
 
-	for t, err := l.nextTuple(); ; t, err = l.nextTuple() {
-		if t.IsPresent() {
-			tuples = append(tuples, t.Get())
+	for t, ok, err := l.nextTuple(); ; t, ok, err = l.nextTuple() {
+		if ok {
+			tuples = append(tuples, t)
 		} else {
 			return tuples, err
 		}
@@ -63,24 +62,24 @@ func (l *Lexer) IntoTuples() ([]ts.Tuple, error) {
 // then an empty option will be returned.
 // Returns an error if the remaining input does not contain a fully formed tuple or any of its
 // constituent elements cannot be parsed.
-func (l *Lexer) nextTuple() (opt.Maybe[ts.Tuple], error) {
+func (l *Lexer) nextTuple() (ts.Tuple, bool, error) {
 	if l.pos >= len(l.buf) {
-		return opt.NewNothing[ts.Tuple](), nil
+		return ts.Tuple{}, false, nil
 	}
 
 	tkn, err := l.matchToken()
 	if err != nil {
 		errWithContext := errors.New(fmt.Sprintf("malformed tuple: {%s}", err))
-		return opt.NewNothing[ts.Tuple](), errWithContext
+		return ts.Tuple{}, false, errWithContext
 	}
 
 	elem := l.elemFromToken(tkn)
 	if elem.GetType() == ts.ElemTuple {
 		tupleVal := elem.GetValue().(ts.Tuple)
-		return opt.NewJust(tupleVal), nil
+		return tupleVal, true, nil
 	}
 
-	return opt.NewJust(ts.MakeTuple()), nil
+	return ts.MakeTuple(), true, nil
 }
 
 // matchToken returns the next token in the string.

@@ -4,8 +4,6 @@ import (
 	"fmt"
 
 	"github.com/tidwall/btree"
-
-	opt "github.com/micutio/goptional"
 )
 
 // The Store defines an interface that any concrete implementation of a tuple space has to follow.
@@ -13,10 +11,10 @@ import (
 // access.
 type Store interface {
 	// In returns a tuple that matches the argument and remove it from the space.
-	In(query Tuple) opt.Maybe[Tuple]
+	In(query Tuple) Result
 
 	// Read returns a tuple that matches the argument.
-	Read(query Tuple) opt.Maybe[Tuple]
+	Read(query Tuple) Result
 
 	// Out writes a tuple into the tuple space.
 	Out(tuple Tuple) bool
@@ -33,30 +31,30 @@ func NewSimpleStore() *BTreeStore {
 }
 
 // In implements the `In` function of the `Store` interface.
-func (store *BTreeStore) In(query Tuple) opt.Maybe[Tuple] {
+func (store *BTreeStore) In(query Tuple) Result {
 	tuple, found := store.tree.Get(query)
 	if found {
 		if tuple.IsMatching(query) {
 			store.tree.Delete(tuple)
-			return opt.NewJust(tuple)
+			return Result{tuple, true}
 		}
 
 		fmt.Printf("[In] tuple %v does not match query %v\n", tuple, query)
 	}
-	return opt.NewNothing[Tuple]()
+	return Result{Tuple{}, false}
 }
 
 // Read implements the `Read` function of the `Store` interface.
-func (store *BTreeStore) Read(query Tuple) opt.Maybe[Tuple] {
+func (store *BTreeStore) Read(query Tuple) Result {
 	tuple, found := store.tree.Get(query)
 	if found {
 		if tuple.IsMatching(query) {
-			return opt.NewJust(tuple)
+			return Result{tuple, true}
 		}
 
 		fmt.Printf("[Read] tuple %v does not match query %v\n", tuple, query)
 	}
-	return opt.NewNothing[Tuple]()
+	return Result{Tuple{}, false}
 }
 
 // Out implements the `Out` function of the `Store` interface

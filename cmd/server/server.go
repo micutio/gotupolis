@@ -74,7 +74,7 @@ func (s *Server) handleIncomingRequest(conn net.Conn) {
 }
 
 func (s *Server) Launch() {
-	fmt.Println("gotupolis server")
+	fmt.Println("gotupolis lexing")
 	listen, listenErr := net.Listen(s.protocol.toString(), s.host+":"+fmt.Sprint(s.port))
 	if listenErr != nil {
 		s.logger.Error("Launch: error listen to host:port",

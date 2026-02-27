@@ -21,20 +21,20 @@ func TestSpace(t *testing.T) {
 			"wildcards", query)
 	}
 
-	tupleOpt1a := <-space.Read(tup)
-	if !tupleOpt1a.IsPresent() {
+	tupleResult1a := <-space.Read(tup)
+	if !tupleResult1a.OK {
 		t.Errorf("Error: cannot find tuple %v", tup)
 	}
 
 	// since we've only read the tuple, it should still be in the space
-	tupleOpt1b := <-space.In(tup)
-	if !tupleOpt1b.IsPresent() {
+	tupleResult1b := <-space.In(tup)
+	if !tupleResult1b.OK {
 		t.Errorf("Error: cannot find tuple %v", tup)
 	}
 
 	// now the tuple should be gone
-	tupleOpt1c := <-space.In(tup)
-	if tupleOpt1c.IsPresent() {
+	tupleResult1c := <-space.In(tup)
+	if tupleResult1c.OK {
 		t.Errorf("Error: space should not contain tuple %v anymore", tup)
 	}
 
@@ -44,20 +44,20 @@ func TestSpace(t *testing.T) {
 		t.Errorf("Error: tuple %v was not inserted, but it should have been", tup)
 	}
 
-	tupleOpt2a := <-space.Read(query)
-	if !tupleOpt2a.IsPresent() {
+	tupleResult2a := <-space.Read(query)
+	if !tupleResult2a.OK {
 		t.Errorf("Error: cannot find tuple %v", query)
 	}
 
 	// since we've only read the tuple, it should still be in the space
-	tupleOpt2b := <-space.In(query)
-	if !tupleOpt2b.IsPresent() {
+	tupleResult2b := <-space.In(query)
+	if !tupleResult2b.OK {
 		t.Errorf("Error: cannot find tuple %v", query)
 	}
 
 	// now the tuple should be gone
-	tupleOpt2c := <-space.In(query)
-	if tupleOpt2c.IsPresent() {
+	tupleResult2c := <-space.In(query)
+	if tupleResult2c.OK {
 		t.Errorf("Error: store should not contain tuple %v anymore", tup)
 	}
 }

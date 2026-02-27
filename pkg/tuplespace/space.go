@@ -1,14 +1,15 @@
 package tuplespace
 
-import (
-	opt "github.com/micutio/goptional"
-)
-
 // TODO: Refer to https://github.com/sgjp/go-tuplespace for inspiration
 
 // The Space contains the actual store and handles concurrent read and write access to it.
 type Space struct {
 	store Store
+}
+
+type Result struct {
+	tuple Tuple
+	OK bool
 }
 
 // NewSpace creates a new space instance that uses the default store implementation `SimpleStore`.
@@ -24,8 +25,8 @@ func MakeSpace(store Store) *Space {
 // In retrieves a tuple that matches the query from the space and removes it.
 // The tuple may contain wildcards. If it does and matches multiple tuples in the space, then an
 // arbitrary match will be returned as a result.
-func (s *Space) In(query Tuple) <-chan opt.Maybe[Tuple] {
-	c := make(chan opt.Maybe[Tuple])
+func (s *Space) In(query Tuple) <-chan Result {
+	c := make(chan Result)
 	go func() {
 		c <- s.store.In(query)
 	}()
@@ -35,8 +36,8 @@ func (s *Space) In(query Tuple) <-chan opt.Maybe[Tuple] {
 // Read retrieves a tuple that matches the query from the space but do not remove it.
 // The tuple may contain wildcards. If it does and matches multiple tuples in the space, then an
 // arbitrary match will be returned as a result.
-func (s *Space) Read(query Tuple) <-chan opt.Maybe[Tuple] {
-	c := make(chan opt.Maybe[Tuple])
+func (s *Space) Read(query Tuple) <-chan Result {
+	c := make(chan Result)
 	go func() {
 		c <- s.store.Read(query)
 	}()

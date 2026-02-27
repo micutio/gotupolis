@@ -1,6 +1,6 @@
 package main
 
-import "github.com/micutio/gotupolis/pkg/server"
+import "github.com/micutio/gotupolis/cmd/server"
 
 // TODO: Make port and host configurable.
 var (
