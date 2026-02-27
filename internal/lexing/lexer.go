@@ -6,7 +6,7 @@ import (
 	"strconv"
 	"unicode"
 
-	ts "github.com/micutio/gotupolis/pkg/tuplespace"
+	ts "github.com/micutio/gotupolis/internal/tuplespace"
 )
 
 type tokenType uint

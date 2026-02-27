@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"testing"
 
-	ts "github.com/micutio/gotupolis/pkg/tuplespace"
+	ts "github.com/micutio/gotupolis/internal/tuplespace"
 )
 
 func TestLexer(t *testing.T) {
