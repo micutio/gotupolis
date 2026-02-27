@@ -139,41 +139,57 @@ func (l *Lexer) elemFromToken(tkn token) ts.Elem {
 // contains any non-numerical symbols.
 func (l *Lexer) parseNumber() (token, error) {
 	start := l.pos
-	isFloat := false
-
-numberLoop:
-	for l.pos < len(l.buf) {
-		char := l.buf[l.pos]
-		switch char {
-		case '.':
-			if isFloat {
-				return token{}, errors.New("float number with double decimal points")
-			}
-
-			isFloat = true
-			l.pos += 1
-		case '-':
-			if l.pos == start {
-				l.pos += 1
-			} else {
-				// only allow a minus at the start of the number; stop here
-				break numberLoop
-			}
-		default:
-			if unicode.IsDigit(char) {
-				l.pos += 1
-			} else {
-				// end of number
-				break numberLoop
-			}
-		}
+	isFloat, err := l.consumeNumberChars(start)
+	if err != nil {
+		return token{}, err
 	}
-
 	if isFloat {
 		return l.parseFloat(start)
 	}
-
 	return l.parseInt(start)
+}
+
+// consumeNumberChars advances l.pos over characters that form a number; isFloat is true if a
+// decimal point was seen. Stops before the first character that is not part of the number.
+func (l *Lexer) consumeNumberChars(start int) (isFloat bool, err error) {
+	for l.pos < len(l.buf) {
+		done, advanceErr := l.consumeOneNumberChar(start, &isFloat)
+		if advanceErr != nil {
+			return false, advanceErr
+		}
+		if done {
+			break
+		}
+	}
+	return isFloat, nil
+}
+
+// consumeOneNumberChar processes one character; if it is part of the number, advances l.pos and
+// returns (false, nil). If it ends the number, returns (true, nil).
+// On invalid input returns (true, err).
+func (l *Lexer) consumeOneNumberChar(start int, isFloat *bool) (numberEnded bool, err error) {
+	char := l.buf[l.pos]
+	switch char {
+	case '.':
+		if *isFloat {
+			return true, errors.New("float number with double decimal points")
+		}
+		*isFloat = true
+		l.pos++
+		return false, nil
+	case '-':
+		if l.pos != start {
+			return true, nil
+		}
+		l.pos++
+		return false, nil
+	default:
+		if unicode.IsDigit(char) {
+			l.pos++
+			return false, nil
+		}
+		return true, nil
+	}
 }
 
 func (l *Lexer) parseFloat(start int) (token, error) {
