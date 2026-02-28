@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"log/slog"
 	"net"
+	"strconv"
 	"time"
 )
 
@@ -21,7 +22,7 @@ func (p Protocol) toString() string {
 	case UDP:
 		return "udp"
 	}
-	return fmt.Sprintf("%d", int(p))
+	return strconv.Itoa(int(p))
 }
 
 type Server struct {
